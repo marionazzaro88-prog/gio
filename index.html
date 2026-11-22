@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Imperia: Giorno &amp; Notte — Planisfero Stile Rìsiko</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- SCHERMATA DI CONFIGURAZIONE PARTITA -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-card">
+      <h1>IMPERIA: GIORNO &amp; NOTTE</h1>
+      <p class="subtitle">Planisfero strategico stile Rìsiko, monumenti, porti e battaglie</p>
+
+      <div class="setup-grid">
+        <div class="form-group">
+          <label for="victory-goal">Durata Partita (Obiettivo PV)</label>
+          <select id="victory-goal">
+            <option value="15" selected>Modalità Breve — 15 Punti Vittoria</option>
+            <option value="20">Modalità Lunga — 20 Punti Vittoria</option>
+            <option value="25">Modalità Epica (10G) — 25 Punti Vittoria</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="player-count">Numero Giocatori &amp; Planisfero</label>
+          <select id="player-count">
+            <option value="6" selected>6 Giocatori — 42 Territori / 6 Continenti</option>
+            <option value="10">10 Giocatori — 60 Territori / 7 Continenti</option>
+            <option value="4">4 Giocatori (Test Rapido — 42 Territori / 6 Continenti)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="map-mode">Aspetto Planisfero</label>
+          <select id="map-mode">
+            <option value="risk-svg" selected>Mappa Interattiva SVG (Stile Rìsiko + Animazioni)</option>
+            <option value="cards">Griglia Tattica a Schede</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="players-config" class="players-config"></div>
+
+      <button id="start-game-btn" class="btn btn-primary btn-large">Inizia la Partita</button>
+    </div>
+  </div>
+
+  <!-- SCHERMATA PRINCIPALE DI GIOCO -->
+  <div id="game-screen" class="screen">
+    <header class="top-bar">
+      <div class="phase-info">
+        <span id="round-badge" class="badge">Turno 1</span>
+        <span id="phase-badge" class="badge badge-day">FASE DI GIORNO</span>
+        <span id="goal-badge" class="badge">Obiettivo: 15 PV</span>
+        <span id="world-stats-badge" class="badge">42 Territori • 6 Continenti</span>
+      </div>
+      <div id="turn-order-bar" class="turn-order-bar"></div>
+      <div class="top-actions">
+        <button id="btn-toggle-view" class="btn btn-secondary btn-small">Cambia Vista Mappa</button>
+        <button id="btn-rules" class="btn btn-secondary btn-small">Regole</button>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <!-- COLONNA SINISTRA: PLANCIA GIOCATORE ATTIVO & AZIONI -->
+      <section class="panel player-panel">
+        <div id="active-player-header" class="active-player-header"></div>
+
+        <div class="tokens-bar" id="tokens-bar"></div>
+
+        <h3>Plancia Azioni (3 Livelli)</h3>
+        <p class="hint">Piazza i 5 segnalini. A fine Giorno devi aver occupato almeno 1 casella per ogni livello (I, II, III).</p>
+        <div id="action-board" class="action-board"></div>
+
+        <h3>Tessere Potere Possedute</h3>
+        <div id="owned-tiles" class="owned-tiles"></div>
+      </section>
+
+      <!-- CENTRO: PLANISFERO INTERATTIVO -->
+      <section class="panel map-panel">
+        <div class="map-header">
+          <div>
+            <h2 id="board-title">Planisfero — 6 Continenti</h2>
+            <div id="continent-legend" class="continent-legend"></div>
+          </div>
+          <div id="map-instruction" class="map-instruction">Seleziona un'azione sulla tua plancia per iniziare.</div>
+        </div>
+
+        <div id="map-viewport" class="map-viewport">
+          <div id="floating-fx-layer" class="floating-fx-layer"></div>
+          <div id="map-container" class="map-container"></div>
+          <div class="zoom-controls">
+            <button id="zoom-in-btn" class="btn btn-secondary btn-small" title="Ingrandisci">+</button>
+            <button id="zoom-out-btn" class="btn btn-secondary btn-small" title="Riduci">-</button>
+            <button id="zoom-reset-btn" class="btn btn-secondary btn-small" title="Centra">Reset</button>
+          </div>
+        </div>
+
+        <div id="map-controls" class="map-controls"></div>
+      </section>
+
+      <!-- DESTRA: CLASSIFICA CIVILTÀ, MERCATO & LOG EVENTI -->
+      <section class="panel sidebar-panel">
+        <h3>Classifica Civiltà</h3>
+        <div id="scoreboard" class="scoreboard"></div>
+
+        <h3>Mercato Tessere Potere</h3>
+        <div id="tile-market" class="tile-market"></div>
+
+        <h3>Diario di Guerra</h3>
+        <div id="game-log" class="game-log"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALE BATTAGLIA -->
+  <div id="battle-modal" class="modal hidden">
+    <div class="modal-content battle-content">
+      <h2>BATTAGLIA SUL PLANISFERO</h2>
+      <div id="battle-summary" class="battle-summary"></div>
+      <div id="battle-stage" class="battle-stage"></div>
+    </div>
+  </div>
+
+  <!-- MODALE ORDINE TURNO NOTTURNO -->
+  <div id="night-order-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>FASE NOTTURNA — Ordine di Turno</h2>
+      <p id="night-order-desc"></p>
+      <div id="night-order-controls"></div>
+    </div>
+  </div>
+
+  <!-- MODALE REGOLE / VITTORIA -->
+  <div id="info-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="info-modal-title">Regole</h2>
+      <div id="info-modal-body"></div>
+      <button id="close-info-modal" class="btn btn-primary">Chiudi</button>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
